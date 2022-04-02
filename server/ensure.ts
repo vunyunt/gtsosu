@@ -21,9 +21,10 @@ function loggedIn(req, res, next) {
  * @returns
  */
 function ensure(userRoles: UserRole[], title?: string) {
-  return (req: Request<any, any>, res: Response, next: NextFunction) => {
+  return async (req: Request<any, any>, res: Response, next: NextFunction): Promise<void> => {
     if (!req.user || !req.user.username) {
-      return res.status(401).send({ error: "Not logged in, refusing access." });
+      await res.status(401).send({ error: "Not logged in, refusing access." });
+      return;
     }
 
     const auth =
@@ -34,11 +35,11 @@ function ensure(userRoles: UserRole[], title?: string) {
 
     title = title ?? userRoles.join("|");
     logger.warn(`${req.user.username} attempted to gain ${title} access!`);
-    return res.status(403).send({ error: "You do not have permission to access this." });
+    await res.status(403).send({ error: "You do not have permission to access this." });
+    return;
   };
 }
 
-// Do we wanna define sets of user roles (like pooler) as constants UserRoles instead?
 export default {
   isAdmin: ensure([], "admin"),
   isPooler: ensure(
